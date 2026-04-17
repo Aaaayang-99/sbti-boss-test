@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBTI·老板图鉴 | 你的领导是什么贵物？</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app" oncontextmenu="return false" onselectstart="return false">
+        
+        <!-- 封面页 -->
+        <div id="coverPage" class="page active">
+            <div class="cover-content">
+                <div class="cover-badge">⚠️ 职场发疯文学 ⚠️</div>
+                <h1 class="cover-title">SBTI·老板图鉴</h1>
+                <p class="cover-subtitle">15个维度 · 16种贵物人格</p>
+                <p class="cover-desc">测测你的老板属于哪路神仙</p>
+                <div class="cover-stats">
+                    <span>🔥 24道灵魂拷问</span>
+                    <span>🎭 4大类别</span>
+                    <span>💊 仅供娱乐</span>
+                </div>
+                <button class="btn-primary" id="startBtn">开始诊断</button>
+                <p class="cover-disclaimer">* 建议不要在老板能看到的地方测试</p>
+            </div>
+        </div>
+
+        <!-- 答题页 -->
+        <div id="quizPage" class="page">
+            <div class="quiz-header">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="currentQ">1</span>/<span id="totalQ">24</span>
+                </div>
+            </div>
+            <div class="quiz-content">
+                <div class="dimension-tag" id="dimensionTag">纬度1 · 晨会能量场</div>
+                <h2 class="question-text" id="questionText">加载中...</h2>
+                <div class="options-container" id="optionsContainer"></div>
+            </div>
+            <div class="quiz-footer">
+                <button class="btn-secondary" id="prevBtn" disabled>← 上一题</button>
+                <button class="btn-primary" id="nextBtn">下一题 →</button>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="resultPage" class="page">
+            <div class="result-header">
+                <!-- 小人图画布 -->
+                <div class="character-container">
+                    <canvas id="characterCanvas" width="200" height="200"></canvas>
+                    <div class="character-label" id="characterLabel">WAVER</div>
+                </div>
+                <div class="result-badge" id="resultCategory"></div>
+                <h1 class="result-type" id="resultType"></h1>
+                <p class="result-nickname" id="resultNickname"></p>
+            </div>
+            <div class="result-content">
+                <div class="result-section">
+                    <h3>📊 维度雷达图</h3>
+                    <canvas id="radarChart" width="300" height="300"></canvas>
+                    <p class="chart-note">A(专业) B(表演) C(失控) D(原始)</p>
+                </div>
+                <div class="result-section">
+                    <h3>🔍 人格解析</h3>
+                    <p id="resultDesc"></p>
+                </div>
+                <div class="result-section">
+                    <h3>💡 生存指南</h3>
+                    <p id="resultAdvice"></p>
+                </div>
+                <div class="result-section">
+                    <h3>🎯 命中纬度</h3>
+                    <p id="resultDimensions"></p>
+                </div>
+            </div>
+            <div class="result-footer">
+                <button class="btn-primary" id="restartBtn">再测一次</button>
+                <button class="btn-secondary" id="shareBtn">📤 分享结果</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="watermark" id="watermark"></div>
+    <script src="script.js"></script>
+</body>
+</html>

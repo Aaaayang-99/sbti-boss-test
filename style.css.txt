@@ -1,0 +1,590 @@
+// 防止F12和调试工具
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+    }
+});
+
+// 题库数据 - 24道题
+const questions = [
+    { dimension: '纬度1 · 晨会能量场', text: '周一早上9:30，老板端着咖啡走进会议室，他的开场白通常是？', options: [
+        { text: '“我们快速过一下本周重点，10点前散会。”', note: '纬度1-A：效率导向型', value: 'A' },
+        { text: '“周末我看了一本书，感触很深，给大家分享一下……”', note: '纬度1-B：表演型激励', value: 'B' },
+        { text: '“那个谁，上周那个数据怎么回事？还有那个谁，客户怎么说？”', note: '纬度1-C：随机点名式焦虑', value: 'C' },
+        { text: '把本子往桌上一摔：“都说说吧，上周都干了点什么有意义的事？”', note: '纬度1-D：审视压迫型', value: 'D' }
+    ]},
+    { dimension: '纬度2 · 深夜信息素', text: '凌晨00:30，你把刚改完的方案发到群里，老板的回应是？', options: [
+        { text: '“辛苦了，明早我路上看。”', note: '纬度2-A：边界清晰型', value: 'A' },
+        { text: '秒回一个[强]的表情，但第二天发现他根本没点开文件。', note: '纬度2-B：情绪价值型', value: 'B' },
+        { text: '连发三条60秒语音矩阵，点开一听全是：“我觉得这个感觉不对……”', note: '纬度2-C：灵感突袭型', value: 'C' },
+        { text: '显示已读，但没回。第二天开会批评你：“以后文件不要半夜发。”', note: '纬度2-D：规则双标型', value: 'D' }
+    ]},
+    { dimension: '纬度3 · 危机公关脸', text: '客户在群里发飙说方案是垃圾，老板的第一反应是？', options: [
+        { text: '单独拉个小群，把相关人叫进来排查具体问题。', note: '纬度3-A：问题解决型', value: 'A' },
+        { text: '先在客户大群回复：“X总消消气，我马上亲自处理。”', note: '纬度3-B：场面维稳型', value: 'B' },
+        { text: '截图发到内部群，@所有人：“这是谁干的？为什么没人发现？”', note: '纬度3-C：问责甩锅型', value: 'C' },
+        { text: '直接在客户群回复：“这版确实不符合我们的水准，这同事是新来的。”', note: '纬度3-D：切割献祭型', value: 'D' }
+    ]},
+    { dimension: '纬度4 · 团建真心话', text: '关于下个月的团建安排，老板的指示是？', options: [
+        { text: '“找个周边的度假酒店，大家带上家属，纯休息。”', note: '纬度4-A：福利放松型', value: 'A' },
+        { text: '“联系那个拓展基地，我们要搞一次极限拉练！”', note: '纬度4-B：意志磨练型', value: 'B' },
+        { text: '上午说去爬山，下午说还是吃饭吧，临下班说算了先放一放。', note: '纬度4-C：朝令夕改型', value: 'C' },
+        { text: '“团建费从部门奖金里扣，不去的按事假处理。”', note: '纬度4-D：强制服从型', value: 'D' }
+    ]},
+    { dimension: '纬度5 · 薪资敏感度', text: '你鼓足勇气敲开老板的门，表达了想调薪的想法，他：', options: [
+        { text: '打开你的绩效表：“我们过一下数据，达标的话我去申请。”', note: '纬度5-A：规则量化型', value: 'A' },
+        { text: '拍拍你肩膀：“我很看好你，明年公司上市了，你这批老人都是功臣。”', note: '纬度5-B：画饼充饥型', value: 'B' },
+        { text: '先聊了半小时创业史，然后说：“我也觉得你辛苦，但我去跟HR提也难办。”', note: '纬度5-C：情感绑架型', value: 'C' },
+        { text: '脸色一沉：“才来两年就提钱？我当年学徒的时候三年没拿工资。”', note: '纬度5-D：爹味压制型', value: 'D' }
+    ]},
+    { dimension: '纬度6 · 视觉动物性', text: '你把精心排版的PPT发给老板，他看完后说：', options: [
+        { text: '“第三页的数据图表对比不够强烈，换个柱状图。”', note: '纬度6-A：专业指导型', value: 'A' },
+        { text: '“整体不够大气，我想要那种‘五彩斑斓的黑’，你品品。”', note: '纬度6-B：抽象玄学型', value: 'B' },
+        { text: '你按照B改了五版后，他说：“算了，还是用回你第一版吧。”', note: '纬度6-C：无效内耗型', value: 'C' },
+        { text: '他觉得字体不好看，让他在投影屏幕上用手比划着改。', note: '纬度6-D：微操干预型', value: 'D' }
+    ]},
+    { dimension: '纬度7 · 下班倒计时', text: '当时钟指向17:59，你发现老板正站在你工位后面的饮水机旁：', options: [
+        { text: '自己背着包往外走：“还不走啊？活是干不完的。”', note: '纬度7-A：准点自由型', value: 'A' },
+        { text: '端杯茶在办公室溜达，见谁都说：“忙着呢？”', note: '纬度7-B：隐形监工型', value: 'B' },
+        { text: '突然在工作群@所有人：“来，我们开个短会碰一下，五分钟。”', note: '纬度7-C：突袭延长型', value: 'C' },
+        { text: '他就坐在正对门口的工位，你想走就得从他眼皮底下经过。', note: '纬度7-D：守门员型', value: 'D' }
+    ]},
+    { dimension: '纬度8 · 走廊偶遇记', text: '在狭窄的走廊里，你和他迎面碰上，通常的情况是？', options: [
+        { text: '正常挥挥手：“老板好。”他也点头回应。', note: '纬度8-A：社交舒适型', value: 'A' },
+        { text: '他隔着十米就用眼神锁定你，等着你立正、靠边、大声喊“老板好”。', note: '纬度8-B：尊卑强调型', value: 'B' },
+        { text: '你赶紧掏出手机假装接电话，侧身让过，祈祷他没看见你。', note: '纬度8-C：尴尬回避型', value: 'C' },
+        { text: '他直接低着头或者看手机，完全把你当空气走过去。', note: '纬度8-D：冷漠无视型', value: 'D' }
+    ]},
+    { dimension: '纬度9 · 金句口头禅', text: '以下哪句话从他嘴里蹦出来的频率最高？', options: [
+        { text: '“数据呢？依据呢？”', note: '纬度9-A：理性求证型', value: 'A' },
+        { text: '“听懂掌声！” / “格局打开！”', note: '纬度9-B：鸡血演讲型', value: 'B' },
+        { text: '“我只要结果，不看过程。”', note: '纬度9-C：结果压榨型', value: 'C' },
+        { text: '“你们这代人啊，吃不了苦。”', note: '纬度9-D：忆苦思甜型', value: 'D' }
+    ]},
+    { dimension: '纬度10 · 二选一困境', text: '当两个方案摆在他面前需要他拍板时，他一般会：', options: [
+        { text: '快速扫一眼，指出优劣，当场签字。', note: '纬度10-A：果断决策型', value: 'A' },
+        { text: '“你再把这两个方案融合一下，给我做第三版。”', note: '纬度10-B：折中拖延型', value: 'B' },
+        { text: '“你去问问隔壁张总的意见，看看他怎么说。”', note: '纬度10-C：责任转移型', value: 'C' },
+        { text: '文件放在桌上三天没批，你去催，他说：“你再想想。”', note: '纬度10-D：不作为型', value: 'D' }
+    ]},
+    { dimension: '纬度11 · 汇报干扰术', text: '当你正在全神贯注汇报工作时，他通常在干嘛？', options: [
+        { text: '看着你的眼睛，偶尔记录关键点。', note: '纬度11-A：尊重倾听型', value: 'A' },
+        { text: '看着手机，手指不停滑动，最后抬头：“嗯，你接着说。”', note: '纬度11-B：假装在线型', value: 'B' },
+        { text: '不断打断你，说你没说到重点，让你回去重写。', note: '纬度11-C：粗暴打断型', value: 'C' },
+        { text: '让你别说了，把文档发给他，他空了看。', note: '纬度11-D：流程冷漠型', value: 'D' }
+    ]},
+    { dimension: '纬度12 · 功劳簿美学', text: '项目大获成功后，老板发的朋友圈内容是？', options: [
+        { text: '团队大合影，配文：“感谢兄弟们的付出！”', note: '纬度12-A：团队共享型', value: 'A' },
+        { text: '自己拿奖杯站在C位的精修图，配文：“砥砺前行，感恩。”', note: '纬度12-B：C位收割型', value: 'B' },
+        { text: '转发公司公众号文章，没有任何配文。', note: '纬度12-C：任务完成型', value: 'C' },
+        { text: '觉得理所当然，复盘会上还指出几个可以做得更好的细节。', note: '纬度12-D：打压冷却型', value: 'D' }
+    ]},
+    { dimension: '纬度13 · 周末来电惊魂', text: '周六下午三点，手机屏幕亮起老板的名字，通常是因为？', options: [
+        { text: '接起来，果然是十万火急的服务器崩了。', note: '纬度13-A：紧急事务型', value: 'A' },
+        { text: '接起来：“喂？你昨天发的朋友圈那个餐厅在哪？”', note: '纬度13-B：生活侵入型', value: 'B' },
+        { text: '不想接但又不敢不接，接起来果然是打错了。', note: '纬度13-C：乌龙骚扰型', value: 'C' },
+        { text: '你假装没听见，周一他说：“你周末不看手机的吗？”', note: '纬度13-D：服从测试型', value: 'D' }
+    ]},
+    { dimension: '纬度14 · 咖啡经济学', text: '他让你帮忙下楼带杯咖啡，给钱的时候：', options: [
+        { text: '不仅给整钱，还说“零钱不用找了，你也买杯喝”。', note: '纬度14-A：大方体恤型', value: 'A' },
+        { text: '说：“回头转你。”然后就没有回头了。', note: '纬度14-B：习惯性遗忘型', value: 'B' },
+        { text: '买回来他说不对，他要的是冰博克不是拿铁，让你再去换。', note: '纬度14-C：挑剔折腾型', value: 'C' },
+        { text: '直接拿过去喝，压根不提钱，觉得你请老板喝咖啡是荣幸。', note: '纬度14-D：理所当然型', value: 'D' }
+    ]},
+    { dimension: '纬度15 · 最后的体面', text: '当你把辞职信递上去的时候，他的最终表现是：', options: [
+        { text: '虽有惋惜，但表示理解，并认真交接。', note: '纬度15-A：好聚好散型', value: 'A' },
+        { text: '拉着你谈了三小时心，画了一个比你新工作还大的饼。', note: '纬度15-B：挽留表演型', value: 'B' },
+        { text: '突然变得特别客气，甚至对你有点小心翼翼的讨好。', note: '纬度15-C：反常抽风型', value: 'C' },
+        { text: '瞬间变脸，最后一个月在流程上各种恶心你。', note: '纬度15-D：恼羞成怒型', value: 'D' }
+    ]},
+    // 补充题目
+    { dimension: '纬度1 · 晨会能量场', text: '老板开晨会最喜欢用的道具是？', options: [
+        { text: '白板笔，边画边讲逻辑。', note: '纬度1-A：效率导向型', value: 'A' },
+        { text: '激光笔，在PPT上画圈圈。', note: '纬度1-B：表演型激励', value: 'B' },
+        { text: '点名册，随机抽人回答。', note: '纬度1-C：随机点名式焦虑', value: 'C' },
+        { text: '教鞭，敲桌子用的。', note: '纬度1-D：审视压迫型', value: 'D' }
+    ]},
+    { dimension: '纬度4 · 团建真心话', text: '团建吃饭时，老板敬酒会说？', options: [
+        { text: '“大家随意，吃好喝好。”', note: '纬度4-A：福利放松型', value: 'A' },
+        { text: '“来，我敬大家一杯，今年我们一定要破亿！”', note: '纬度4-B：意志磨练型', value: 'B' },
+        { text: '先说要敬三杯，喝到一半自己忘了要说什么。', note: '纬度4-C：朝令夕改型', value: 'C' },
+        { text: '“不喝就是不给我面子啊！”', note: '纬度4-D：强制服从型', value: 'D' }
+    ]},
+    { dimension: '纬度7 · 下班倒计时', text: '周五下午5:30，老板在群里发了一句：“在吗？”', options: [
+        { text: '是急事，处理完就让大家走。', note: '纬度7-A：准点自由型', value: 'A' },
+        { text: '发完人就消失了，留下一群人面面相觑。', note: '纬度7-B：隐形监工型', value: 'B' },
+        { text: '接着连发5条60秒语音安排周末工作。', note: '纬度7-C：突袭延长型', value: 'C' },
+        { text: '发完就在门口等着，看谁不回。', note: '纬度7-D：守门员型', value: 'D' }
+    ]},
+    { dimension: '纬度9 · 金句口头禅', text: '老板在群里发了一个冷笑话，你会？', options: [
+        { text: '配合笑一下，然后继续工作。', note: '纬度9-A：理性求证型', value: 'A' },
+        { text: '跟风回“哈哈哈哈老板幽默”。', note: '纬度9-B：鸡血演讲型', value: 'B' },
+        { text: '假装没看见，等别人先回。', note: '纬度9-C：结果压榨型', value: 'C' },
+        { text: '回一个[强]，意思一下。', note: '纬度9-D：忆苦思甜型', value: 'D' }
+    ]},
+    { dimension: '纬度11 · 汇报干扰术', text: '你给老板发了一份详细的周报，他：', options: [
+        { text: '仔细看完，批注了几个问题。', note: '纬度11-A：尊重倾听型', value: 'A' },
+        { text: '回复“收到”，但下次开会问的内容周报里都有。', note: '纬度11-B：假装在线型', value: 'B' },
+        { text: '打电话过来：“你写的什么东西？重新写！”', note: '纬度11-C：粗暴打断型', value: 'C' },
+        { text: '不回复，三天后转发给别人说“参考一下”。', note: '纬度11-D：流程冷漠型', value: 'D' }
+    ]},
+    { dimension: '纬度13 · 周末来电惊魂', text: '老板周末在群里@你，通常是为了？', options: [
+        { text: '确实有紧急客户需求。', note: '纬度13-A：紧急事务型', value: 'A' },
+        { text: '让你去他朋友圈点赞。', note: '纬度13-B：生活侵入型', value: 'B' },
+        { text: '发了一个链接让你“看看竞品”。', note: '纬度13-C：乌龙骚扰型', value: 'C' },
+        { text: '测试你是否24小时在线。', note: '纬度13-D：服从测试型', value: 'D' }
+    ]},
+    { dimension: '纬度14 · 咖啡经济学', text: '老板说“我请客喝奶茶”，通常的结果是？', options: [
+        { text: '他真的点了，每个人都有一杯。', note: '纬度14-A：大方体恤型', value: 'A' },
+        { text: '说了三次，一次都没请过。', note: '纬度14-B：习惯性遗忘型', value: 'B' },
+        { text: '点了一杯，让大家分着喝。', note: '纬度14-C：挑剔折腾型', value: 'C' },
+        { text: '让你先垫钱，然后忘了报销。', note: '纬度14-D：理所当然型', value: 'D' }
+    ]},
+    { dimension: '纬度5 · 薪资敏感度', text: '年终奖发放前后，老板的态度是？', options: [
+        { text: '按绩效公平发放，公开透明。', note: '纬度5-A：规则量化型', value: 'A' },
+        { text: '发之前画大饼，发之后画更大的饼。', note: '纬度5-B：画饼充饥型', value: 'B' },
+        { text: '发之前说效益不好，发之后说大家要感恩。', note: '纬度5-C：情感绑架型', value: 'C' },
+        { text: '发个红包让你猜，猜错了还要被说。', note: '纬度5-D：爹味压制型', value: 'D' }
+    ]},
+    { dimension: '纬度15 · 最后的体面', text: '你离职后，前老板在背调时会？', options: [
+        { text: '客观评价，不夸大不贬低。', note: '纬度15-A：好聚好散型', value: 'A' },
+        { text: '说你不错，但暗示你是被他挖走的。', note: '纬度15-B：挽留表演型', value: 'B' },
+        { text: '一会儿说你好一会儿说你不好，让人摸不着头脑。', note: '纬度15-C：反常抽风型', value: 'C' },
+        { text: '各种暗示你能力不行、态度有问题。', note: '纬度15-D：恼羞成怒型', value: 'D' }
+    ]}
+];
+
+// 人格类型库
+const personalityTypes = {
+    'AC-1': { category: 'green', catName: '薛定谔的老板组', type: 'WAVER', nickname: '摇摆机', desc: '早上说往东，中午说往西，下班前问你为什么不在北边。他的决策方向取决于昨晚的睡眠质量和今早的咖啡因摄入量。', advice: '任何事情都要留文字记录。他口头说的不算，等他睡一觉醒来可能就忘了自己说过什么。', dimensions: 'A和C选项数量接近，在专业和失控之间反复横跳。' },
+    'AC-2': { category: 'green', catName: '薛定谔的老板组', type: 'TELEP', nickname: '意念大师', desc: '他以为他交代清楚了，其实他只在脑子里想了一遍。你没做到就是你悟性不够、主动性不强、没有主人翁意识。', advice: '每次沟通完立刻发会议纪要让他确认。把“他脑子里的想法”变成“白纸黑字的证据”。', dimensions: 'A和C都极高，两极分化严重，时而专业时而抽风。' },
+    'AC-3': { category: 'green', catName: '薛定谔的老板组', type: 'MUTE', nickname: '静默者', desc: '平时看着逻辑清晰、专业靠谱，一遇到大事就装死失踪。等你把事情处理完了，他又冒出来点评两句。', advice: '大事发生时做好“老板已消失”的心理准备，自己先顶上，事后记得发邮件抄送他“汇报处理结果”。', dimensions: 'A和C都较高，但D极低，不粗暴只是怂。' },
+    'BD-1': { category: 'blue', catName: '戏精土皇帝组', type: 'TYRANT-JESTER', nickname: '暴君弄臣', desc: '心情好时给你演小品、讲段子、称兄道弟；心情差时给你上刑具、翻旧账、阴阳怪气。伴君如伴虎。', advice: '学会察言观色，他心情好的时候赶紧把难事说了，心情差的时候躲远点。', dimensions: 'B和D数量接近，对外表演对内压制。' },
+    'BD-2': { category: 'blue', catName: '戏精土皇帝组', type: 'PYRAMID', nickname: '传销头子', desc: '对外整活儿、喊口号、发朋友圈，营造出一片欣欣向荣的景象。对内狠抓考勤、克扣福利、PUA员工。', advice: '不要把他在外面的形象当真。对内的事情留好证据，对外配合他演好戏。', dimensions: 'B和D都极高，表演和压制双修。' },
+    'BD-3': { category: 'blue', catName: '戏精土皇帝组', type: 'GREEN', nickname: '绿茶上司', desc: '嘴上说着“大家辛苦了”“你最棒了”，背地里记下谁准点下班了、谁报销多了、谁在群里没给他点赞。', advice: '不要被他的甜言蜜语迷惑。他夸你的时候，可能已经在记你的小本本了。', dimensions: 'B和D都较高，且A极低。' },
+    'CD-1': { category: 'yellow', catName: '深渊难度组', type: 'CHAOS-BOMB', nickname: '混沌炸弹', desc: '他自己都不知道自己在干嘛，但你必须知道。不知道就骂你。想到一出是一出。', advice: '准备好速效救心丸和简历。在他手下干活，主打一个“命硬”。', dimensions: 'C和D都极高，既混乱又粗暴。' },
+    'CD-2': { category: 'yellow', catName: '深渊难度组', type: 'NAKED-KING', nickname: '裸体国王', desc: '能力极差，脾气极大。听不进任何建议，觉得公司离了他明天就倒闭。', advice: '不要试图纠正他。要么忍，要么滚，没有第三条路。', dimensions: 'C和D都极高，无能狂怒的代表。' },
+    'CD-3': { category: 'yellow', catName: '深渊难度组', type: 'JOKER-BOSS', nickname: '小丑竟是我老板', desc: '遇到问题就乱指挥一通导致更糟，然后怪大环境不好、怪员工执行力差。', advice: '他演的时候配合笑一下。在他手下最重要的是学会“向上管理”。', dimensions: 'C和D都较高，但B也不少。' },
+    'A-PURE': { category: 'green', catName: '神仙下凡组', type: 'SAINT', nickname: '赛博圣人', desc: '恭喜你！这种老板在当今社会属于濒危保护动物。逻辑清晰、边界明确、赏罚分明。', advice: '好好干，别作。这种老板值得你付出。', dimensions: 'A选项超过一半，专业、理性、体面。' },
+    'B-PURE': { category: 'blue', catName: '戏精土皇帝组', type: 'RINGMASTER', nickname: '马戏团团长', desc: '公司就是他的舞台，你们都是群演。赚钱不赚钱不重要，戏瘾过了就行。', advice: '当好你的群演，该鼓掌时鼓掌。别指望他能做什么实事。', dimensions: 'B选项占主导，表演型人格拉满。' },
+    'C-PURE': { category: 'yellow', catName: '深渊难度组', type: 'FLY', nickname: '无头苍蝇', desc: '公司能活到现在全靠运气和底下的人拼命给他擦屁股。', advice: '如果你是那个冤大头，赶紧找下家。保护好自己别被溅一身血。', dimensions: 'C选项占主导，混乱是常态。' },
+    'D-PURE': { category: 'purple', catName: '大清未亡组', type: 'TYRANT', nickname: '职场暴君', desc: '大清虽然亡了，但他心中的辫子永远粗又长。召之即来挥之即去。', advice: '跑。立刻。马上。离职时做好证据留存。', dimensions: 'D选项占主导，原始粗暴贯穿始终。' }
+};
+
+// 全局变量
+let currentIndex = 0;
+let answers = new Array(24).fill(null);
+let selectedOption = null;
+
+const coverPage = document.getElementById('coverPage');
+const quizPage = document.getElementById('quizPage');
+const resultPage = document.getElementById('resultPage');
+const startBtn = document.getElementById('startBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const restartBtn = document.getElementById('restartBtn');
+const shareBtn = document.getElementById('shareBtn');
+const progressFill = document.getElementById('progressFill');
+const currentQSpan = document.getElementById('currentQ');
+const totalQSpan = document.getElementById('totalQ');
+const dimensionTag = document.getElementById('dimensionTag');
+const questionText = document.getElementById('questionText');
+const optionsContainer = document.getElementById('optionsContainer');
+const watermark = document.getElementById('watermark');
+
+totalQSpan.textContent = questions.length;
+watermark.textContent = 'SBTI·老板图鉴 | 仅供娱乐';
+
+startBtn.addEventListener('click', function() {
+    coverPage.classList.remove('active');
+    quizPage.classList.add('active');
+    renderQuestion(0);
+});
+
+function renderQuestion(index) {
+    const q = questions[index];
+    dimensionTag.textContent = q.dimension;
+    questionText.textContent = q.text;
+    currentQSpan.textContent = index + 1;
+    progressFill.style.width = ((index + 1) / questions.length) * 100 + '%';
+    
+    optionsContainer.innerHTML = '';
+    selectedOption = answers[index];
+    
+    q.options.forEach((opt, optIndex) => {
+        const optDiv = document.createElement('div');
+        optDiv.className = 'option-item' + (selectedOption === opt.value ? ' selected' : '');
+        optDiv.innerHTML = `
+            <span class="option-prefix">${String.fromCharCode(65 + optIndex)}</span>
+            <span class="option-text">${opt.text}</span>
+            <div class="option-note">${opt.note}</div>
+        `;
+        optDiv.addEventListener('click', function() {
+            document.querySelectorAll('.option-item').forEach(item => item.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedOption = opt.value;
+            answers[index] = opt.value;
+        });
+        optionsContainer.appendChild(optDiv);
+    });
+    
+    prevBtn.disabled = index === 0;
+    nextBtn.textContent = index === questions.length - 1 ? '查看结果 →' : '下一题 →';
+}
+
+prevBtn.addEventListener('click', function() {
+    if (currentIndex > 0) {
+        if (selectedOption !== null) answers[currentIndex] = selectedOption;
+        currentIndex--;
+        renderQuestion(currentIndex);
+    }
+});
+
+nextBtn.addEventListener('click', function() {
+    if (selectedOption === null) {
+        alert('请先选择一个选项');
+        return;
+    }
+    answers[currentIndex] = selectedOption;
+    if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        renderQuestion(currentIndex);
+    } else {
+        showResult();
+    }
+});
+
+function calculateType() {
+    const counts = { A: 0, B: 0, C: 0, D: 0 };
+    answers.forEach(ans => { if (ans) counts[ans]++; });
+    
+    const A = counts.A, B = counts.B, C = counts.C, D = counts.D;
+    
+    if (A >= 12) return 'A-PURE';
+    if (B >= 12) return 'B-PURE';
+    if (C >= 12) return 'C-PURE';
+    if (D >= 12) return 'D-PURE';
+    
+    if (A >= 5 && C >= 5) {
+        if (A >= 8 && C >= 8) return 'AC-2';
+        if (A >= 6 && C >= 6 && D <= 2) return 'AC-3';
+        return 'AC-1';
+    }
+    if (B >= 5 && D >= 5) {
+        if (B >= 8 && D >= 8) return 'BD-2';
+        if (B >= 6 && D >= 6 && A <= 1) return 'BD-3';
+        return 'BD-1';
+    }
+    if (C >= 6 && D >= 6) {
+        if (C >= 7 && D >= 7) return 'CD-1';
+        if (C >= 8 && D >= 8) return 'CD-2';
+        if (C >= 6 && D >= 6 && B >= 3) return 'CD-3';
+        return 'CD-1';
+    }
+    
+    if (A > B && A > C && A > D) return 'A-PURE';
+    if (B > A && B > C && B > D) return 'B-PURE';
+    if (C > A && C > B && C > D) return 'C-PURE';
+    return 'D-PURE';
+}
+
+// 绘制小人图
+function drawCharacter(typeKey) {
+    const canvas = document.getElementById('characterCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 200, 200);
+    
+    const typeData = personalityTypes[typeKey];
+    const category = typeData.category;
+    
+    // 根据类别选择主色调
+    let mainColor, lightColor, darkColor;
+    if (category === 'green') {
+        mainColor = '#2ed573';
+        lightColor = 'rgba(46, 213, 115, 0.3)';
+        darkColor = '#1a9a4a';
+    } else if (category === 'blue') {
+        mainColor = '#1e90ff';
+        lightColor = 'rgba(30, 144, 255, 0.3)';
+        darkColor = '#1565c0';
+    } else if (category === 'yellow') {
+        mainColor = '#ffc107';
+        lightColor = 'rgba(255, 193, 7, 0.3)';
+        darkColor = '#d4a000';
+    } else {
+        mainColor = '#9b59b6';
+        lightColor = 'rgba(155, 89, 182, 0.3)';
+        darkColor = '#7d3c98';
+    }
+    
+    // 绘制背景光环
+    ctx.beginPath();
+    ctx.arc(100, 100, 75, 0, 2 * Math.PI);
+    ctx.fillStyle = lightColor;
+    ctx.fill();
+    ctx.strokeStyle = mainColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // 根据类型绘制不同的小人
+    if (category === 'green') {
+        // 天使小人
+        ctx.beginPath();
+        ctx.arc(100, 85, 25, 0, 2 * Math.PI);
+        ctx.fillStyle = mainColor;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(92, 80, 4, 0, 2 * Math.PI);
+        ctx.arc(108, 80, 4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(100, 92, 8, 0.1, Math.PI - 0.1);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(75, 65, 15, 8, -0.3, 0, 2 * Math.PI);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(125, 65, 15, 8, 0.3, 0, 2 * Math.PI);
+        ctx.fill();
+    } else if (category === 'blue') {
+        // 小丑表演者
+        ctx.beginPath();
+        ctx.arc(100, 85, 25, 0, 2 * Math.PI);
+        ctx.fillStyle = mainColor;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(92, 80, 4, 0, 2 * Math.PI);
+        ctx.arc(108, 80, 4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(100, 95, 10, 0, Math.PI);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(75, 55);
+        ctx.lineTo(60, 35);
+        ctx.lineTo(85, 45);
+        ctx.closePath();
+        ctx.fillStyle = '#ff6b6b';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(125, 55);
+        ctx.lineTo(140, 35);
+        ctx.lineTo(115, 45);
+        ctx.closePath();
+        ctx.fill();
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(100, 60 + i*8, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffd93d';
+            ctx.fill();
+        }
+    } else if (category === 'yellow') {
+        // 晕头转向小人
+        ctx.beginPath();
+        ctx.arc(100, 85, 25, 0, 2 * Math.PI);
+        ctx.fillStyle = mainColor;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(92, 80, 4, 0, 2 * Math.PI);
+        ctx.arc(108, 80, 4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(100, 95, 10, 0.1, Math.PI - 0.1);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(90, 115);
+        ctx.lineTo(80, 140);
+        ctx.lineTo(95, 125);
+        ctx.fillStyle = '#ff8e53';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(110, 115);
+        ctx.lineTo(120, 140);
+        ctx.lineTo(105, 125);
+        ctx.fill();
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.arc(70 + i*15, 50, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffd93d';
+            ctx.fill();
+        }
+    } else {
+        // 恶魔小人
+        ctx.beginPath();
+        ctx.arc(100, 85, 25, 0, 2 * Math.PI);
+        ctx.fillStyle = mainColor;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(92, 80, 4, 0, 2 * Math.PI);
+        ctx.arc(108, 80, 4, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(100, 92, 10, 0.1, Math.PI - 0.1);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(75, 55);
+        ctx.lineTo(55, 40);
+        ctx.lineTo(70, 65);
+        ctx.closePath();
+        ctx.fillStyle = '#ff4757';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(125, 55);
+        ctx.lineTo(145, 40);
+        ctx.lineTo(130, 65);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(85, 120);
+        ctx.lineTo(75, 145);
+        ctx.lineTo(100, 130);
+        ctx.closePath();
+        ctx.fillStyle = '#ff4757';
+        ctx.fill();
+    }
+    
+    // 绘制身体
+    ctx.beginPath();
+    ctx.rect(85, 115, 30, 30);
+    ctx.fillStyle = mainColor;
+    ctx.fill();
+    
+    document.getElementById('characterLabel').textContent = typeData.type;
+}
+
+function showResult() {
+    quizPage.classList.remove('active');
+    resultPage.classList.add('active');
+    
+    const typeKey = calculateType();
+    const typeData = personalityTypes[typeKey];
+    
+    const counts = { A: 0, B: 0, C: 0, D: 0 };
+    answers.forEach(ans => { if (ans) counts[ans]++; });
+    
+    drawCharacter(typeKey);
+    
+    document.getElementById('resultCategory').className = 'result-badge ' + typeData.category;
+    document.getElementById('resultCategory').textContent = typeData.catName;
+    document.getElementById('resultType').textContent = typeData.type;
+    document.getElementById('resultNickname').textContent = '—— ' + typeData.nickname;
+    document.getElementById('resultDesc').textContent = typeData.desc;
+    document.getElementById('resultAdvice').textContent = typeData.advice;
+    document.getElementById('resultDimensions').textContent = `A:${counts.A}个 B:${counts.B}个 C:${counts.C}个 D:${counts.D}个 | ${typeData.dimensions}`;
+    
+    drawRadarChart(counts);
+}
+
+function drawRadarChart(counts) {
+    const canvas = document.getElementById('radarChart');
+    const ctx = canvas.getContext('2d');
+    const centerX = 150, centerY = 150, radius = 100;
+    const values = [counts.A, counts.B, counts.C, counts.D];
+    const maxVal = Math.max(...values, 12);
+    const labels = ['A 专业', 'B 表演', 'C 失控', 'D 原始'];
+    
+    ctx.clearRect(0, 0, 300, 300);
+    
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    for (let i = 1; i <= 4; i++) {
+        ctx.beginPath();
+        const r = (radius / 4) * i;
+        for (let j = 0; j < 4; j++) {
+            const angle = (j * 90 - 90) * Math.PI / 180;
+            const x = centerX + Math.cos(angle) * r;
+            const y = centerY + Math.sin(angle) * r;
+            if (j === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        if (i === 4) ctx.fill();
+    }
+    
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY - radius);
+    ctx.lineTo(centerX, centerY + radius);
+    ctx.moveTo(centerX - radius, centerY);
+    ctx.lineTo(centerX + radius, centerY);
+    ctx.stroke();
+    
+    const points = [];
+    for (let i = 0; i < 4; i++) {
+        const val = Math.min(values[i] / maxVal, 1);
+        const angle = (i * 90 - 90) * Math.PI / 180;
+        const x = centerX + Math.cos(angle) * radius * val;
+        const y = centerY + Math.sin(angle) * radius * val;
+        points.push({ x, y });
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < 4; i++) ctx.lineTo(points[i].x, points[i].y);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 107, 107, 0.3)';
+    ctx.fill();
+    ctx.strokeStyle = '#ff6b6b';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    points.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ff6b6b';
+        ctx.fill();
+    });
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[0], centerX, centerY - radius - 10);
+    ctx.fillText(labels[1], centerX + radius + 15, centerY + 5);
+    ctx.fillText(labels[2], centerX, centerY + radius + 20);
+    ctx.fillText(labels[3], centerX - radius - 15, centerY + 5);
+}
+
+restartBtn.addEventListener('click', function() {
+    currentIndex = 0;
+    answers = new Array(24).fill(null);
+    selectedOption = null;
+    resultPage.classList.remove('active');
+    coverPage.classList.add('active');
+});
+
+shareBtn.addEventListener('click', function() {
+    const type = document.getElementById('resultType').textContent;
+    const nickname = document.getElementById('resultNickname').textContent;
+    const shareText = `【SBTI·老板图鉴】我的老板是 ${type} ${nickname}！快来测测你的老板是什么贵物→`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'SBTI·老板图鉴',
+            text: shareText,
+            url: window.location.href
+        }).catch(() => {});
+    } else {
+        navigator.clipboard?.writeText(shareText + ' ' + window.location.href).then(() => {
+            alert('结果已复制，快去分享吧！');
+        }).catch(() => {
+            prompt('复制以下内容分享：', shareText);
+        });
+    }
+});
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.body.style.userSelect = 'none';
